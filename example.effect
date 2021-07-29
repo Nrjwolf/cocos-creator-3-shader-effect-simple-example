@@ -1,0 +1,54 @@
+// Effect Syntax Guide: https://github.com/cocos-creator/docs-3d/blob/master/zh/material-system/effect-syntax.md
+
+CCEffect %{
+  techniques:
+    - passes:
+      - vert: unlit-vs:vert # builtin header
+        frag: unlit-fs:frag
+        blendState:
+          targets:
+          - blend: true
+            blendSrc: src_alpha
+            blendDst: one_minus_src_alpha
+            blendSrcAlpha: src_alpha
+            blendDstAlpha: one_minus_src_alpha
+        properties: 
+          mainTexture:    { value: white }
+          mainColor:      { value: [1, 1, 1, 1], editor: { type: color } }
+}%
+
+CCProgram unlit-vs %{
+  precision highp float;
+  #include <cc-global>
+  #include <input>
+
+  out vec2 v_uv;
+
+  vec4 vert() {
+      vec4 pos = vec4(a_position, 1);
+
+      pos = cc_matViewProj * pos;
+      v_uv = a_texCoord;
+
+      return pos;
+  }
+
+}%
+
+CCProgram unlit-fs %{
+  precision highp float;
+  #include <output>
+  #include <cc-fog-fs>
+
+  in vec2 v_uv;
+  uniform sampler2D mainTexture;
+
+  uniform Constant {
+    vec4 mainColor;
+  };
+
+  vec4 frag () {
+    vec4 col = mainColor * texture(mainTexture, v_uv);
+    return col;
+  }
+}%
